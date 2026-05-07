@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tablet Leia - Napoleão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset e Definições de Tela (1280x800) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000000;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container Principal */
+        .tablet-screen {
+            width: 1280px;
+            height: 800px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Tela de Boas-vindas */
+        .welcome-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .welcome-logo {
+            width: 320px; /* Aumentado de 150px para 320px */
+            height: 320px; /* Aumentado de 150px para 320px */
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+
+        .welcome-title {
+            font-size: 36px; /* Leve ajuste para acompanhar o logo */
+            font-weight: 700;
+            color: white;
+            margin-bottom: 50px;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        .welcome-button {
+            padding: 20px 50px;
+            font-size: 20px;
+            font-weight: 600;
+            background: white;
+            color: #cc0000;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .welcome-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .welcome-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Cabeçalho dos slides */
+        .header {
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid #eeeeee;
+            padding: 0 80px;
+            z-index: 10;
+            background: white;
+            display: none;
+        }
+
+        .header.active {
+            display: flex;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        /* Área da Imagem */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+            background: #ffffff;
+            position: relative;
+            display: none;
+        }
+
+        .main-content.active {
+            display: flex;
+        }
+
+        .image-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #slideImage {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Botões Laterais */
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-button:active {
+            transform: translateY(-50%) scale(0.9);
+            background: #0071e3;
+        }
+        
+        .nav-button svg {
+            width: 32px;
+            height: 32px;
+            fill: #1d1d1f;
+        }
+
+        .nav-button:active svg {
+            fill: white;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #btnAnterior { left: 20px; }
+        #btnProxima { right: 20px; }
+
+        /* Contador */
+        .counter-badge {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Animações */
+        .fade-out {
+            opacity: 0;
+        }
+
+        @media (max-width: 1280px), (max-height: 800px) {
+            .tablet-screen {
+                width: 100vw;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tablet-screen">
+        <!-- Tela de Boas-vindas -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <img src="imagens/logo.png" alt="SESI Logo" class="welcome-logo">
+            <h2 class="welcome-title">SESI Makerthon Sumaré</h2>
+            <button class="welcome-button" onclick="iniciarAula()">Iniciar aula</button>
+        </div>
+
+        <!-- Header dos slides -->
+        <header class="header" id="headerSlides">
+            <h1 class="title" id="slideTitle">Carregando...</h1>
+        </header>
+
+        <!-- Conteúdo dos slides -->
+        <main class="main-content" id="mainSlides">
+            <!-- Botão Esquerdo -->
+            <button class="nav-button" id="btnAnterior" onclick="mudarBloco(blocoAtual - 1)">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+
+            <div class="image-wrapper">
+                <img id="slideImage" src="" alt="Slide">
+            </div>
+
+            <!-- Botão Direito -->
+            <button class="nav-button" id="btnProxima" onclick="mudarBloco(blocoAtual + 1)">
+                <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+
+            <div class="counter-badge">
+                <span id="slideNumber">1</span> / <span id="slideTotal">5</span>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const blocos = [
+            {
+                titulo: "Origens e Ascensão",
+                imagem: "imagens/revolucao_francesa_01.png"
+            },
+            {
+                titulo: "Vitória e Conquista",
+                imagem: "imagens/bastilha_01.png"
+            },
+            {
+                titulo: "Visão Estratégica",
+                imagem: "imagens/franca.png"
+            },
+            {
+                titulo: "Conhecimento é Poder",
+                imagem: "imagens/maria_antonieta.png"
+            },
+            {
+                titulo: "Legado Eterno",
+                imagem: "imagens/revolucao_francesa_02.png"
+            }
+        ];
+
+        let blocoAtual = 0;
+
+        function iniciarAula() {
+            // Esconde a tela de boas-vindas
+            document.getElementById("welcomeScreen").style.display = "none";
+            
+            // Mostra os slides
+            document.getElementById("headerSlides").classList.add("active");
+            document.getElementById("mainSlides").classList.add("active");
+            
+            // Carrega o primeiro slide
+            mudarBloco(0);
+        }
+
+        function mudarBloco(novoBloco) {
+            if (novoBloco >= 0 && novoBloco < blocos.length) {
+                const imgElement = document.getElementById("slideImage");
+                const tituloElement = document.getElementById("slideTitle");
+                
+                imgElement.classList.add("fade-out");
+
+                setTimeout(() => {
+                    blocoAtual = novoBloco;
+                    
+                    tituloElement.textContent = blocos[blocoAtual].titulo;
+                    imgElement.src = blocos[blocoAtual].imagem;
+                    
+                    atualizarControles();
+                    imgElement.classList.remove("fade-out");
+                }, 300);
+            }
+        }
+
+        function atualizarControles() {
+            const slideNumberElement = document.getElementById("slideNumber");
+            const slideTotalElement = document.getElementById("slideTotal");
+            const btnAnterior = document.getElementById("btnAnterior");
+            const btnProxima = document.getElementById("btnProxima");
+
+            slideNumberElement.textContent = blocoAtual + 1;
+            slideTotalElement.textContent = blocos.length;
+
+            btnAnterior.disabled = blocoAtual === 0;
+            btnProxima.disabled = blocoAtual === blocos.length - 1;
+            
+            btnAnterior.style.visibility = blocoAtual === 0 ? "hidden" : "visible";
+            btnProxima.style.visibility = blocoAtual === blocos.length - 1 ? "hidden" : "visible";
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight") mudarBloco(blocoAtual + 1);
+            if (e.key === "ArrowLeft") mudarBloco(blocoAtual - 1);
+        });
+
+        window.irParaBloco = mudarBloco;
+    </script>
+</body>
+</html>
