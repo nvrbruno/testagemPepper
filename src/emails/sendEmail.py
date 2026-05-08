@@ -1,64 +1,110 @@
 # -*- coding: utf-8 -*-
+
 import os
 import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
+
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEImage import MIMEImage
+
 from dotenv import load_dotenv
 from naoqi import ALProxy
 
-# Carrega o .env da raiz do projeto
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
-ip        = os.getenv("IP")
-porta     = int(os.getenv("PORT"))
-sender    = os.getenv("EMAIL_SENDER")
-password  = os.getenv("EMAIL_PASSWORD")
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+load_dotenv(
+    os.path.join(BASE_DIR, "..", "..", ".env")
+)
+
+ip = os.getenv("IP")
+porta = int(os.getenv("PORT"))
+
+sender = os.getenv("EMAIL_SENDER")
+password = os.getenv("EMAIL_PASSWORD")
 recipient = os.getenv("EMAIL_RECIPIENT")
 
-# Voz do Pepper
-tts = ALProxy("ALTextToSpeech", ip, porta)
+arquivo = os.path.join(
+    BASE_DIR,
+    "assets",
+    "logo.png"
+)
 
 
-def send_email(sender, password, recipient, subject, body, file_path=None):
-    # Monta o email
-    msg = MIMEMultipart()
-    msg["From"]    = sender
-    msg["To"]      = recipient
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
+def get_tts():
+    try:
+        return ALProxy("ALTextToSpeech", ip, porta)
+    except Exception as e:
+        print("Aviso: nao foi possivel conectar ao Pepper: {}".format(e))
+        return None
 
-    # Anexa arquivo se informado
-    if file_path:
-        with open(file_path, "rb") as f:
-            anexo = MIMEBase("application", "octet-stream")
-            anexo.set_payload(f.read())
-        encoders.encode_base64(anexo)
-        anexo.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
-        msg.attach(anexo)
 
-    # Envia pelo Gmail
-    servidor = smtplib.SMTP("smtp.gmail.com", 587)
-    servidor.starttls()
-    servidor.login(sender, password)
-    servidor.sendmail(sender, recipient, msg.as_string())
-    servidor.quit()
+subject = "Email Teste"
+body = """Linha 1
+Linha 2
+Linha 3"""
+
+msg = MIMEMultipart()
+
+msg["From"] = sender
+msg["To"] = recipient
+msg["Subject"] = subject
+
+texto = MIMEText(
+    body,
+    "plain"
+)
+
+msg.attach(texto)
+
+
+with open(arquivo, "rb") as f:
+
+    img = MIMEImage(f.read())
+
+    img.add_header(
+        "Content-Disposition",
+        "attachment",
+        filename=os.path.basename(arquivo)
+    )
+
+    msg.attach(img)
 
 
 try:
-    send_email(
-        sender    = sender,
-        password  = password,
-        recipient = recipient,
-        subject   = "Email Teste",
-        body      = """Linha 1
-Linha 2
-Linha 3""",
-        file_path = "./assets/SESI_MAKERTHON_LOGO.png"
+
+    servidor = smtplib.SMTP_SSL(
+        "smtp.gmail.com",
+        465
     )
-    tts.say("Email enviado com sucesso")
+
+    servidor.ehlo()
+
+    servidor.login(
+        sender,
+        password
+    )
+
+    servidor.sendmail(
+        sender,
+        recipient,
+        msg.as_string()
+    )
+
+    servidor.quit()
+
+    print("Email enviado")
+
+    tts = get_tts()
+    if tts:
+        tts.say("Email enviado")
 
 except Exception as e:
-    print("Erro ao enviar email:", e)
-    tts.say("Erro ao enviar email")
+
+    print("Erro ao enviar email: {}".format(e))
+
+    tts = get_tts()
+    if tts:
+        tts.say("Erro ao enviar email")
