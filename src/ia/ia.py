@@ -24,9 +24,9 @@ tts             = ALProxy("ALTextToSpeech", ip, porta)
 animated_speech = ALProxy("ALAnimatedSpeech", ip, porta)
 tts.setLanguage("Portuguese")
 
-# ─────────────────────────────────────────
+
 #        CONFIGURACOES DE VOZ
-# ─────────────────────────────────────────
+
 VOLUME           = 0.8
 VELOCIDADE       = 90
 PITCH            = 1.1
@@ -36,7 +36,7 @@ tts.setVolume(VOLUME)
 tts.setParameter("speed", VELOCIDADE)
 tts.setParameter("pitchShift", PITCH)
 configuracao_animacao = {"bodyLanguageMode": MODO_ANIMACAO}
-# ─────────────────────────────────────────
+
 
 
 def limpar_texto(texto):
