@@ -6,18 +6,37 @@ import unicodedata
 from dotenv import load_dotenv
 from naoqi import ALProxy
 
-# Carrega o .env da raiz do projeto
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
-ip       = os.getenv("IP")
-porta    = int(os.getenv("PORT"))
-api_key  = os.getenv("GROQ_API_KEY")
-url      = os.getenv("GROQ_URL")
+ip      = os.getenv("IP")
+porta   = int(os.getenv("PORT"))
+api_key = os.getenv("API_KEY")
+url     = os.getenv("GROQ_URL")
+
+# Validacao
+faltando = [n for n, v in [("IP", ip), ("PORT", porta), ("API_KEY", api_key), ("GROQ_URL", url)] if not v]
+if faltando:
+    print("ERRO: Variaveis nao encontradas no .env: " + ", ".join(faltando))
+    sys.exit(1)
 
 # Conecta ao Pepper
-tts            = ALProxy("ALTextToSpeech", ip, porta)
+tts             = ALProxy("ALTextToSpeech", ip, porta)
 animated_speech = ALProxy("ALAnimatedSpeech", ip, porta)
 tts.setLanguage("Portuguese")
+
+# ─────────────────────────────────────────
+#        CONFIGURACOES DE VOZ
+# ─────────────────────────────────────────
+VOLUME           = 0.8
+VELOCIDADE       = 90
+PITCH            = 1.1
+MODO_ANIMACAO    = "contextual"  # "contextual" | "disabled" | "random"
+
+tts.setVolume(VOLUME)
+tts.setParameter("speed", VELOCIDADE)
+tts.setParameter("pitchShift", PITCH)
+configuracao_animacao = {"bodyLanguageMode": MODO_ANIMACAO}
+# ─────────────────────────────────────────
 
 
 def limpar_texto(texto):
@@ -38,10 +57,10 @@ historico = [
 ]
 
 print("Pepper IA!")
+print("Volume: " + str(VOLUME) + " | Velocidade: " + str(VELOCIDADE) + " | Pitch: " + str(PITCH) + " | Animacao: " + MODO_ANIMACAO)
 print("Digite 'sair' para fechar.\n")
 
 while True:
-    # Lê input do usuário
     try:
         msg = raw_input("Voce: ")
         if isinstance(msg, str):
@@ -56,7 +75,6 @@ while True:
 
     historico.append({"role": "user", "content": msg})
 
-    # Envia para a API do Groq
     headers = {"Authorization": "Bearer " + api_key, "Content-Type": "application/json"}
     data    = {"model": "llama-3.3-70b-versatile", "messages": historico, "temperature": 0.7}
 
@@ -71,9 +89,8 @@ while True:
         if isinstance(texto_limpo, unicode):
             texto_limpo = texto_limpo.encode('ascii', 'ignore')
 
-        # Fala com animação, fallback para tts simples
         try:
-            animated_speech.say(str(texto_limpo))
+            animated_speech.say(str(texto_limpo), configuracao_animacao)
         except:
             tts.say(str(texto_limpo))
 
